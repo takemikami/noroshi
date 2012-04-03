@@ -1,0 +1,7 @@
+# package
+pkg/
+
+# temporary files
+*~
+\#*#
+.DS_Store

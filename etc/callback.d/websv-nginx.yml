@@ -1,0 +1,7 @@
+conf-file:
+  - file: /etc/noroshi/websv-nginx.conf
+    template: websv-nginx.erb
+execute:
+  - cmd: service nginx reload
+condition:
+  role: app-server

@@ -1,0 +1,4 @@
+auth-key: holidaysinthesun
+druby-port: 1121
+data-keys: Name role status env id
+callback-dir: /etc/noroshi/callback.d
