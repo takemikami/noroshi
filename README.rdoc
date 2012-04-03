@@ -1,10 +1,11 @@
 = noroshi
 
-* http://github.com/#{github_username}/#{project_name}
+https://github.com/takemikami/noroshi
 
 == DESCRIPTION:
 
-FIX (describe your package)
+Noroshi is the host status information exchange server (powered by rgossip2),
+which can execute external program when the host getting another host's status changes.
 
 == FEATURES/PROBLEMS:
 
@@ -26,7 +27,7 @@ FIX (describe your package)
 
 (The MIT License)
 
-Copyright (c) 2012 Takeshi Mikami
+Copyright (c) 2012 Mikami, Takeshi
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
