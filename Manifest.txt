@@ -3,11 +3,7 @@ Manifest.txt
 PostInstall.txt
 README.rdoc
 Rakefile
+bin/noroshi
 lib/noroshi.rb
-script/console
-script/destroy
-script/generate
-spec/noroshi_spec.rb
-spec/spec.opts
-spec/spec_helper.rb
-tasks/rspec.rake
+lib/noroshi/cli.rb
+lib/noroshi/sv.rb
