@@ -27,19 +27,22 @@ module Noroshi
     end
 
     def initialize(conf)
-      @logger = Logger.new($stderr)
+      log_file = "/var/log/noroshi.log"
+      log_file = conf['log-file'] if conf && conf['log-file']
+      @logger = Logger.new(log_file, 7)
       @keys = []
       @mydata = {}
       initial_nodes = nil
       @mtx = Mutex::new
       address = SV.get_localipaddress
       @keys = conf['data-keys'].split(/ /) if  conf && conf['data-keys']
-      initial_nodes = conf['initial_nodes'] if conf && conf['initial_nodes']
+      initial_nodes = conf['initial_nodes'].split(/ /) if conf && conf['initial_nodes']
       callback_dir = conf['callback-dir'] if conf && conf['callback-dir']
 
       @callback_proc = Proc.new do |args|
-        @logger.info("callback: #{args}")
-        if args[0] == :add || args[0] == :delete || (args[0] == :update && args[3] != args[4])
+#        @logger.debug("callback: #{args}") 
+       if args[0] == :refresh || args[0] == :add || args[0] == :comeback  || args[0] == :delete || (args[0] == :update && args[3] != args[4])
+          @logger.info("callback: #{args}")
           Dir::glob("#{callback_dir}/*.yml").each do |f|
             @logger.debug("target callback yml: #{f}")
             cb_conf = YAML.load(File.read(f))
@@ -55,7 +58,7 @@ module Noroshi
               end
             end
             @mtx.synchronize do
-              if execute_flg
+              if execute_flg || args[0] == :refresh
                 if cb_conf['conf-file']
                   execute_flg = false
                   cb_conf['conf-file'].each do |cf|
@@ -68,12 +71,12 @@ module Noroshi
                   end
                 end
               end
-              if execute_flg
+              if execute_flg || args[0] == :refresh
                 if cb_conf['execute']
                   cb_conf['execute'].each do |exe|
                     @logger.info("execute callback command: #{exe['cmd']}")
                     begin
-                      `execute #{exe['cmd']}`
+                      `#{exe['cmd']}`
                     rescue => ex
                       @logger.error("callback command error: #{ex} (#{exe['cmd']})")
                     end
@@ -91,6 +94,7 @@ module Noroshi
         :auth_key => conf['auth-key'],
         :callback_handler => @callback_proc,
       )
+      @gossip.start
 
       @logger.info("Noroshi Server is initialized")
     end
@@ -119,6 +123,10 @@ module Noroshi
         @callback_proc.call([:update,nil,nil,@gossip.data,old_data])
         @logger.info("local node data updated: #{values}")
       end
+    end
+
+    def refresh
+      @callback_proc.call([:refresh,nil,nil,"",""])
     end
 
     def list
@@ -166,6 +174,10 @@ module Noroshi
         localip = ""
         ifconfig = `ifconfig`
         ifconfig.split(/\n/).each do |line|
+         if line =~ /inet addr:([0-9.]*)/
+           localip = $1
+           break unless localip == "127.0.0.1"
+         end
          if line =~ /inet ([0-9.]*)/
            localip = $1
            break unless localip == "127.0.0.1"
@@ -183,8 +195,8 @@ module Noroshi
         end
       end
 
-      def start(conf)
-#        Process.daemon
+      def start(conf, info=nil)
+        Process.daemon
         DRb.start_service(get_drubyuri(conf), SV.new(conf))
 
         Signal.trap(:EXIT) do
@@ -192,6 +204,11 @@ module Noroshi
           remote.stop
           puts "Noroshi Server is stopped"
           DRb.stop_service()
+        end
+
+        unless info == nil
+          remote = DRbObject.new(nil, Noroshi::SV.get_drubyuri(conf))
+          p remote.set_values(info)
         end
 
         DRb.thread.join

@@ -34,13 +34,17 @@ $ noroshi add_node 10.11.12.13
 === Installation:
 
 $ git clone git@github.com:takemikami/noroshi.git
+
 $ cd noroshi
+
 $ rake package
+
 $ sudo gem install -l pkg/noroshi-0.0.1.gem
 
 === Sample Configuration Setup:
 
 $ sudo mkdir /etc/noroshi
+
 $ sudo cp -rf etc/* /etc/noroshi/
 
 == LICENSE:
